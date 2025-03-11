@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive 5-Step Flowchart (Dark Theme)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    svg {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+    }
+    .node { cursor: pointer; }
+
+    .tooltip {
+      position: absolute;
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 5px;
+      font-size: 12px;
+      display: none;
+      pointer-events: none;
+      border-radius: 4px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #2b2b2b;
+      color: #f0f0f0;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .close {
+      position: absolute;
+      top: 10px; right: 15px;
+      cursor: pointer;
+      font-size: 18px;
+      color: #aaa;
+    }
+
+    .close:hover { color: #fff; }
+
+  </style>
+</head>
+<body>
+
+<h2>Flowchart</h2>
+
+<div id="tooltip" class="tooltip"></div>
+
+<!-- Modal -->
+<div id="infoModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="modalClose">&times;</span>
+    <h3 id="modalTitle">Step Info</h3>
+    <p id="modalText">Details about the step...</p>
+  </div>
+</div>
+
+<svg width="800" height="300"></svg>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+  const svg = d3.select("svg");
+  const tooltip = d3.select("#tooltip");
+  const modal = document.getElementById("infoModal");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalText = document.getElementById("modalText");
+  const modalClose = document.getElementById("modalClose");
+
+  modalClose.onclick = () => modal.style.display = "none";
+  window.onclick = event => { if (event.target === modal) modal.style.display = "none"; };
+
+  const nodes = [
+    { id: "Start", x: 50, y: 100, info: "This is the start." },
+    { id: "Step 1", x: 200, y: 100, info: "Step 1: Gather info." },
+    { id: "Step 2", x: 350, y: 100, info: "Step 2: Design." },
+    { id: "Step 3", x: 500, y: 100, info: "Step 3: Develop." },
+    { id: "End", x: 650, y: 100, info: "This is the end." }
+  ];
+
+  const links = [
+    { source: "Start", target: "Step 1" },
+    { source: "Step 1", target: "Step 2" },
+    { source: "Step 2", target: "Step 3" },
+    { source: "Step 3", target: "End" }
+  ];
+
+  // Arrowhead marker
+  svg.append("defs").append("marker")
+    .attr("id", "arrow")
+    .attr("viewBox", "0 0 10 10")
+    .attr("refX", 10)
+    .attr("refY", 5)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M 0 0 L 10 5 L 0 10 Z")
+    .attr("fill", "#f0f0f0");
+
+  // Draw links (lines with arrows)
+  links.forEach(link => {
+    const source = nodes.find(n => n.id === link.source);
+    const target = nodes.find(n => n.id === link.target);
+
+    svg.append("line")
+      .attr("x1", source.x + 100)
+      .attr("y1", source.y + 25)
+      .attr("x2", target.x)
+      .attr("y2", target.y + 25)
+      .attr("stroke", "#f0f0f0")
+      .attr("stroke-width", 2)
+      .attr("marker-end", "url(#arrow)");
+  });
+
+  // Draw nodes
+  const nodeGroup = svg.selectAll(".node")
+    .data(nodes)
+    .enter()
+    .append("g")
+    .attr("class", "node")
+    .attr("transform", d => `translate(${d.x},${d.y})`)
+    .on("mouseover", function(event, d) {
+      tooltip.style("display", "block")
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY + 10) + "px")
+        .text(`Click for info: ${d.id}`);
+    })
+    .on("mouseout", () => tooltip.style("display", "none"))
+    .on("click", (event, d) => {
+      modalTitle.innerText = d.id;
+      modalText.innerText = d.info;
+      modal.style.display = "flex";
+    });
+
+  nodeGroup.append("rect")
+    .attr("width", 100)
+    .attr("height", 50)
+    .attr("rx", 10)
+    .attr("ry", 10)
+    .attr("fill", "#4a90e2")
+    .attr("stroke", "#888")
+    .attr("stroke-width", 1);
+
+  nodeGroup.append("text")
+    .attr("x", 50)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
+    .attr("fill", "#fff")
+    .attr("font-size", "14px")
+    .text(d => d.id);
+</script>
+
+</body>
+</html>
